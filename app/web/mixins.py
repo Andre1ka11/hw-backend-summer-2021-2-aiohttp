@@ -1,3 +1,12 @@
+from aiohttp.web import HTTPUnauthorized, HTTPForbidden
+
+
 class AuthRequiredMixin:
-    # TODO: можно использовать эту mixin-заготовку для реализации проверки авторизации во View
-    raise NotImplementedError
+    @property
+    def request(self):
+        return super().request
+
+    async def _iter(self):
+        if not getattr(self.request, "admin", None):
+            raise HTTPUnauthorized()
+        return await super()._iter()

@@ -44,10 +44,29 @@ class View(AiohttpView):
 app = Application()
 
 
+async def on_startup(app: Application):
+    await app.store.admins.connect(app)
+    await app.store.vk_api.connect(app)
+
+
+async def on_shutdown(app: Application):
+    await app.store.vk_api.disconnect(app)
+    app.database.clear()
+
+
 def setup_app(config_path: str) -> Application:
     setup_logging(app)
     setup_config(app, config_path)
     setup_routes(app)
     setup_middlewares(app)
     setup_store(app)
+    
+
+
+    
+    
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+    
+
     return app

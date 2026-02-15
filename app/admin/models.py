@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class Admin:
     id: int
     email: str
-    password: str | None = None
+    password: str
