@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import Schema, fields, validate, pre_load, ValidationError
 
 
 class ThemeSchema(Schema):
@@ -21,22 +21,19 @@ class QuestionSchema(Schema):
     def check_answers(self, data, **kwargs):
         answers = data.get("answers", [])
         if len(answers) < 2:
-            raise ValueError("Must be at least 2 answers")
+            raise ValidationError("Must be at least 2 answers")
         
         correct_count = sum(1 for a in answers if a.get("is_correct"))
         if correct_count == 0:
-            raise ValueError("Must have at least one correct answer")
+            raise ValidationError("Must have at least one correct answer")
         if correct_count > 1:
-            raise ValueError("Must have only one correct answer")
+            raise ValidationError("Must have only one correct answer")
         
         return data
 
 
 class ThemeListSchema(Schema):
     themes = fields.Nested(ThemeSchema, many=True)
-
-
-
 
 
 class ThemeIdSchema(Schema):

@@ -34,11 +34,12 @@ async def error_handling_middleware(request: "Request", handler):
         response = await handler(request)
         return response
     except HTTPUnprocessableEntity as e:
+        # Убираем лишнюю обертку
         return error_json_response(
             http_status=400,
             status=HTTP_ERROR_CODES[400],
             message=e.reason,
-            data={"json": json.loads(e.text)},
+            data=json.loads(e.text),
         )
     except (ValidationError, ValueError) as e:
         return error_json_response(
