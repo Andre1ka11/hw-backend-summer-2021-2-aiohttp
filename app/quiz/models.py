@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
 class Theme:
-    id: int | None
+    id: Optional[int]
     title: str
 
 
@@ -15,7 +16,7 @@ class Answer:
 
 @dataclass
 class Question:
-    id: int | None
+    id: Optional[int]
     title: str
     theme_id: int
     answers: list[Answer]

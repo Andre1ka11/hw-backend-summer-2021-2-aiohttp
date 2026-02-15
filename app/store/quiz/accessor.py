@@ -1,3 +1,4 @@
+from typing import Optional
 from app.base.base_accessor import BaseAccessor
 from app.quiz.models import Answer, Question, Theme
 
@@ -8,13 +9,13 @@ class QuizAccessor(BaseAccessor):
         self.app.database.themes.append(theme)
         return theme
 
-    async def get_theme_by_title(self, title: str) -> Theme | None:
+    async def get_theme_by_title(self, title: str) -> Optional[Theme]:
         for theme in self.app.database.themes:
             if theme.title == title:
                 return theme
         return None
 
-    async def get_theme_by_id(self, id_: int) -> Theme | None:
+    async def get_theme_by_id(self, id_: int) -> Optional[Theme]:
         for theme in self.app.database.themes:
             if theme.id == id_:
                 return theme
@@ -23,7 +24,7 @@ class QuizAccessor(BaseAccessor):
     async def list_themes(self) -> list[Theme]:
         return self.app.database.themes.copy()
 
-    async def get_question_by_title(self, title: str) -> Question | None:
+    async def get_question_by_title(self, title: str) -> Optional[Question]:
         for question in self.app.database.questions:
             if question.title == title:
                 return question
@@ -42,7 +43,7 @@ class QuizAccessor(BaseAccessor):
         return question
 
     async def list_questions(
-        self, theme_id: int | None = None
+        self, theme_id: Optional[int] = None
     ) -> list[Question]:
         if theme_id is None:
             return self.app.database.questions.copy()

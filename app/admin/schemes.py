@@ -8,5 +8,5 @@ class AdminSchema(Schema):
 
 
 class AdminLoginSchema(Schema):
-    email = fields.Str(required=True, validate=validate.Email())
+    email = fields.Str(required=True)  
     password = fields.Str(required=True)

@@ -1,11 +1,12 @@
 from hashlib import sha256
 
-from aiohttp.web import HTTPForbidden
+from aiohttp.web import HTTPForbidden, HTTPBadRequest
 from aiohttp_apispec import request_schema, response_schema
+from aiohttp_session import get_session
 
 from app.admin.schemes import AdminLoginSchema, AdminSchema
 from app.web.app import View
-from app.web.utils import json_response
+from app.web.utils import json_response, error_json_response
 
 
 class AdminLoginView(View):
@@ -18,13 +19,24 @@ class AdminLoginView(View):
         admin = await self.store.admins.get_by_email(email)
         
         if not admin:
-            raise HTTPForbidden()
+            return error_json_response(
+                http_status=403,
+                status="forbidden",
+                message="Forbidden",
+                data={},
+            )
         
         password_hash = sha256(password.encode()).hexdigest()
         if admin.password != password_hash:
-            raise HTTPForbidden()
-        
-        self.request["session"] = {"admin_id": admin.id}
+            return error_json_response(
+                http_status=403,
+                status="forbidden",
+                message="Forbidden",
+                data={},
+            )
+
+        session = await get_session(self.request)
+        session["admin_id"] = admin.id
         
         return json_response(data=AdminSchema().dump(admin))
 

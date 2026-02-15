@@ -1,5 +1,6 @@
 import typing
 from hashlib import sha256
+from typing import Optional
 
 from app.admin.models import Admin
 from app.base.base_accessor import BaseAccessor
@@ -15,13 +16,13 @@ class AdminAccessor(BaseAccessor):
             password=app.config.admin.password
         )
 
-    async def get_by_email(self, email: str) -> Admin | None:
+    async def get_by_email(self, email: str) -> Optional[Admin]:
         for admin in self.app.database.admins:
             if admin.email == email:
                 return admin
         return None
 
-    async def get_by_id(self, admin_id: int) -> Admin | None:
+    async def get_by_id(self, admin_id: int) -> Optional[Admin]:
         for admin in self.app.database.admins:
             if admin.id == admin_id:
                 return admin

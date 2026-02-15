@@ -14,7 +14,7 @@ class Store:
     def __init__(self, app: "Application"):
         self.app = app
         self.admins = AdminAccessor(app)
-        self.quiz = QuizAccessor(app)
+        self.quizzes = QuizAccessor(app)
         self.vk_api = VkApiAccessor(app)
         self.bots_manager = BotManager(app)
 

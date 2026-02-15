@@ -3,9 +3,11 @@ import os
 from asyncio import AbstractEventLoop
 from collections.abc import Iterator
 
+import pytest
 from aiohttp.pytest_plugin import AiohttpClient
 from aiohttp.test_utils import TestClient
 
+from app.store import Store
 from app.store.database.database import Database
 from app.web.app import Application, setup_app
 from app.web.config import Config
@@ -66,11 +68,12 @@ def cli(
 
 @pytest.fixture
 async def auth_cli(cli: TestClient, config: Config) -> TestClient:
-    await cli.post(
+    resp = await cli.post(
         path="/admin.login",
         json={
             "email": config.admin.email,
             "password": config.admin.password,
         },
     )
+    assert resp.status == 200, f"Login failed with status {resp.status}"
     return cli

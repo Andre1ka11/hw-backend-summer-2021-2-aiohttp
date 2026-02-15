@@ -5,9 +5,12 @@ from aiohttp.web_exceptions import (
     HTTPUnprocessableEntity,
     HTTPUnauthorized,
     HTTPForbidden,
+    HTTPException,
 )
 from aiohttp.web_middlewares import middleware
 from aiohttp_apispec import validation_middleware
+from aiohttp_session import get_session
+from marshmallow import ValidationError
 
 from app.web.utils import error_json_response
 
@@ -35,19 +38,42 @@ async def error_handling_middleware(request: "Request", handler):
             http_status=400,
             status=HTTP_ERROR_CODES[400],
             message=e.reason,
-            data=json.loads(e.text),
+            data={"json": json.loads(e.text)},
+        )
+    except (ValidationError, ValueError) as e:
+        return error_json_response(
+            http_status=400,
+            status=HTTP_ERROR_CODES[400],
+            message=str(e),
+            data={"json": {"answers": [str(e)]}},
         )
     except HTTPUnauthorized as e:
         return error_json_response(
             http_status=401,
             status=HTTP_ERROR_CODES[401],
-            message=str(e),
+            message="Unauthorized",
+            data={},
         )
     except HTTPForbidden as e:
         return error_json_response(
             http_status=403,
             status=HTTP_ERROR_CODES[403],
+            message="Forbidden",
+            data={},
+        )
+    except HTTPException as e:
+        return error_json_response(
+            http_status=e.status_code,
+            status=HTTP_ERROR_CODES.get(e.status_code, "unknown"),
             message=str(e),
+            data={},
+        )
+    except Exception as e:
+        return error_json_response(
+            http_status=500,
+            status=HTTP_ERROR_CODES[500],
+            message="Internal server error",
+            data={},
         )
 
 
@@ -56,18 +82,36 @@ async def auth_middleware(request: "Request", handler):
     if request.path == "/admin.login" and request.method == "POST":
         return await handler(request)
     
-    session = request.get("session", {})
-    admin_id = session.get("admin_id")
-    
-    if not admin_id:
-        raise HTTPUnauthorized()
-    
-    admin = await request.app.store.admins.get_by_id(admin_id)
-    
-    if not admin:
-        raise HTTPForbidden()
-    
-    request.admin = admin
+    try:
+        session = await get_session(request)
+        admin_id = session.get("admin_id")
+        
+        if not admin_id:
+            return error_json_response(
+                http_status=401,
+                status=HTTP_ERROR_CODES[401],
+                message="Unauthorized",
+                data={},
+            )
+        
+        admin = await request.app.store.admins.get_by_id(admin_id)
+        
+        if not admin:
+            return error_json_response(
+                http_status=403,
+                status=HTTP_ERROR_CODES[403],
+                message="Forbidden",
+                data={},
+            )
+        
+        request.admin = admin
+    except Exception:
+        return error_json_response(
+            http_status=401,
+            status=HTTP_ERROR_CODES[401],
+            message="Unauthorized",
+            data={},
+        )
     
     return await handler(request)
 
